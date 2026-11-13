@@ -245,12 +245,11 @@ function cats(){return (DATA.site.cats&&DATA.site.cats.length)?DATA.site.cats:DE
 function catLabel(id){var c=cats().filter(function(x){return x.id===id})[0];return c?(c[lang]||c.en||c.ar||id):id}
 var lang="ar";
 try{lang=localStorage.getItem("mis-lang")||S().defLang||"ar"}catch(e){lang=S().defLang||"ar"}
-var userNS=null,artifactNS=null,assetsNS=null,canEdit=false;
 var cleanups=[],lastKey="",uid=0,splashDone=false,logoTimer=0;
 var filter={q:"",cat:"all"};
 var edit=null,confirmDel=null,confirmReset=false,atab="apps";
-var unlocked=false;
-try{unlocked=sessionStorage.getItem("mis-admin")==="1";atab=sessionStorage.getItem("mis-tab")||"apps"}catch(e){}
+var unlocked=false,ghToken="";
+try{unlocked=sessionStorage.getItem("mis-admin")==="1";atab=sessionStorage.getItem("mis-tab")||"apps";ghToken=sessionStorage.getItem("mis-gh-token")||""}catch(e){}
 function sha256(s){
   if(!(window.crypto&&crypto.subtle))return Promise.reject(new Error("nocrypto"));
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(s)).then(function(b){
@@ -284,7 +283,7 @@ aP2:["هدفه إنه يبقى مهندس قوي يبني برامج للتصن�
 aTl:"المشوار",
 tl:[["قائد منطقة الريوورك، SEWS-EG","من 1-1-2024، بعد ما اشتغل مهندس ريوورك ومسؤول منطقة"],["مهندس جودة، ضفائر السيارات","الجودة والمواصفات والتوثيق الفني"],["مدير مكتب استقبال، LG والعربي","التعامل مع العملاء ومتابعة طلبات الخدمة"],["فني كابلات نحاس وألياف ضوئية","شبكات الاتصالات"],["بكالوريوس تكنولوجيا المعلومات","جامعة الزقازيق، 2020–2024"]],
 pwTitle:"دخول المالك",pwPh:"كلمة السر",pwBtn:"دخول",pwWrong:"كلمة السر غلط.",pwErr:"المتصفح مش بيدعم التحقق. جرب متصفح تاني.",
-needOwner:"لوحة التحكم لا تنشر التعديلات من نسخة GitHub Pages. الموقع العام متاح للزوار كالمعتاد.",lock:"خروج",
+needOwner:"أدخل رمز GitHub محدوداً لمستودع Mis Group حتى تتمكن اللوحة من النشر.",ghTitle:"ربط GitHub للنشر",ghHelp:"أنشئ Fine-grained token واختر مستودع mis-group فقط، ثم امنحه Contents: Read and write. سنحتفظ بالرمز في جلسة المتصفح الحالية فقط.",ghTokenLabel:"رمز GitHub",ghCreate:"إنشاء رمز محدود للمستودع",ghConnect:"تحقق وربط",ghChecking:"جاري التحقق من الرمز…",ghInvalid:"الرمز غير صالح أو لا يمكنه الوصول إلى مستودع mis-group.",ghDenied:"انتهت صلاحية الرمز أو لا يملك صلاحية الكتابة. اربط رمزاً جديداً.",ghUploadLarge:"الملف أكبر من 20 ميجابايت؛ اختار ملفاً أصغر.",lock:"خروج",
 tabApps:"البرامج",tabTexts:"النصوص",tabDesign:"التصميم",tabSet:"الإعدادات",
 aTitleP:"لوحة التحكم",addApp:"+ برنامج جديد",edit:"تعديل",del:"حذف",confirmDel:"اضغط تاني للتأكيد",
 sampleNote:"البرامج اللي من غير رابط تحميل بتظهر للعملاء بعلامة قريباً. أضف رابط أو ارفع ملف عشان يظهر زر التحميل.",
@@ -294,7 +293,7 @@ fCat:"التصنيف",fVer:"الإصدار",fSize:"الحجم",fPlat:"المنص
 fDl:"رابط التحميل",fBuy:"رابط الشراء (للبرامج المدفوعة)",fCover:"رابط صورة الغلاف",fAccent:"لون الغلاف",
 upFile:"رفع ملف البرنامج",upCover:"رفع صورة الغلاف",upLogo:"رفع صورة اللوجو",uploading:"جاري الرفع…",upDone:"تم الرفع",upFail:"فشل الرفع",
 upHint:"الرفع المباشر لحد 20 ميجا. لو الملف أكبر حط رابط من Google Drive أو GitHub Releases في خانة رابط التحميل.",
-save:"حفظ ونشر",cancel:"إلغاء",saving:"جاري النشر…",saved:"تم النشر",saveFail:"فشل النشر. حاول تاني.",needTitle:"اكتب اسم البرنامج على الأقل بلغة واحدة.",
+save:"حفظ ونشر",cancel:"إلغاء",saving:"جاري رفع التعديلات إلى GitHub…",saved:"تم رفع التعديلات. سيظهر الموقع بعد تحديث Pages.",saveFail:"فشل رفع التعديلات إلى GitHub. حاول تاني.",needTitle:"اكتب اسم البرنامج على الأقل بلغة واحدة.",
 txHint:"كل النصوص اللي في الموقع. غيّر أي نص واحفظ. سيب الخانة زي ما هي لو مش عاوز تغيّرها. الفقرات مفصولة بسطر فاضي، والمشوار سطر لكل خطوة بالشكل: العنوان | التفاصيل.",
 dColors:"ألوان الموقع",dStage:"ألوان خلفية صفحة الترحيب (بالترتيب وانت نازل)",dFonts:"الخطوط",dLogo:"اللوجو والاسم",
 cGold:"اللون الأساسي",cTeal:"اللون الثانوي",cInk:"الخلفية",cInk2:"خلفية الشرايح",cPanel:"لون الكروت",cFg:"لون النص",cMute:"لون النص الخافت",
@@ -331,7 +330,7 @@ aP2:["The goal is to become a strong engineer who builds software for manufactur
 aTl:"The path",
 tl:[["Leader Area Rework, SEWS-EG","Since 1-1-2024, after working as rework engineer and area rework"],["Quality Engineer, automotive wiring harness","Quality, specifications and technical documentation"],["Reception Office Manager, LG and Arabi","Customer handling and service request follow-up"],["Fiber optic and copper cable technician","Telecommunications networks"],["B.Sc. Information Technology","Zagazig University, 2020–2024"]],
 pwTitle:"Owner sign-in",pwPh:"Password",pwBtn:"Enter",pwWrong:"Wrong password.",pwErr:"This browser cannot verify the password. Try another browser.",
-needOwner:"The control panel cannot publish changes from the GitHub Pages version. The public site remains available to visitors.",lock:"Sign out",
+needOwner:"Enter a GitHub token limited to the Mis Group repository to publish.",ghTitle:"Connect GitHub to publish",ghHelp:"Create a fine-grained token, select only the mis-group repository, and grant Contents: Read and write. The token stays in this browser session only.",ghTokenLabel:"GitHub token",ghCreate:"Create a repository-limited token",ghConnect:"Verify and connect",ghChecking:"Verifying token…",ghInvalid:"The token is invalid or cannot access the mis-group repository.",ghDenied:"The token expired or lacks write permission. Connect a new token.",ghUploadLarge:"The file is larger than 20 MB. Choose a smaller file.",lock:"Sign out",
 tabApps:"Apps",tabTexts:"Texts",tabDesign:"Design",tabSet:"Settings",
 aTitleP:"Control panel",addApp:"+ New app",edit:"Edit",del:"Delete",confirmDel:"Press again to confirm",
 sampleNote:"Apps without a download link show a Coming soon label to visitors. Add a link or upload a file to turn on the download button.",
@@ -341,7 +340,7 @@ fCat:"Category",fVer:"Version",fSize:"Size",fPlat:"Platform",fPrice:"Price (0 = 
 fDl:"Download link",fBuy:"Purchase link (paid apps)",fCover:"Cover image link",fAccent:"Cover color",
 upFile:"Upload app file",upCover:"Upload cover image",upLogo:"Upload logo image",uploading:"Uploading…",upDone:"Uploaded",upFail:"Upload failed",
 upHint:"Direct upload up to 20 MB. For larger files, paste a Google Drive or GitHub Releases link into the download field.",
-save:"Save and publish",cancel:"Cancel",saving:"Publishing…",saved:"Published",saveFail:"Publishing failed. Try again.",needTitle:"Enter the app name in at least one language.",
+save:"Save and publish",cancel:"Cancel",saving:"Uploading changes to GitHub…",saved:"Changes uploaded. The site will update after Pages rebuilds.",saveFail:"Could not upload changes to GitHub. Try again.",needTitle:"Enter the app name in at least one language.",
 txHint:"Every text on the site. Change any text and save. Leave a field as it is to keep it. Paragraphs are separated by a blank line; the path is one step per line as: Title | Details.",
 dColors:"Site colors",dStage:"Welcome page background colors (top to bottom as you scroll)",dFonts:"Fonts",dLogo:"Logo and name",
 cGold:"Main color",cTeal:"Second color",cInk:"Background",cInk2:"Slide background",cPanel:"Card color",cFg:"Text color",cMute:"Muted text color",
@@ -537,12 +536,16 @@ function fld(id,label,v,type,extra,cls){return '<label'+(cls?' class="'+cls+'"':
 function fta(id,label,v,cls){return '<label class="'+(cls||"")+'">'+label+'<textarea id="'+id+'">'+esc(v)+"</textarea></label>"}
 function chk(id,label,on){return '<label class="chk"><input type="checkbox" id="'+id+'"'+(on?" checked":"")+'><span>'+label+"</span></label>"}
 function sel(id,label,opts,cur){return '<label>'+label+'<select id="'+id+'">'+opts.map(function(o){return '<option value="'+esc(o[0])+'"'+(o[0]===cur?" selected":"")+">"+esc(o[1])+"</option>"}).join("")+"</select></label>"}
-function upBtn(target,label){return assetsNS?'<button type="button" class="btn ghost small" data-act="pick" data-t="'+target+'">'+label+"</button>":""}
+function upBtn(target,label){return ghToken?'<button type="button" class="btn ghost small" data-act="pick" data-t="'+target+'">'+label+"</button>":""}
+function githubConnectHTML(){
+  return '<div class="wrap"><form class="pw panel" id="ghform" autocomplete="off"><h2>'+esc(t("ghTitle"))+'</h2><p class="hint">'+esc(t("ghHelp"))+'</p><a class="btn ghost small" href="https://github.com/settings/personal-access-tokens/new?name=Mis%20Group%20Publisher&amp;target_name=Misaragamal96&amp;expires_in=90&amp;contents=write" target="_blank" rel="noopener">'+esc(t("ghCreate"))+'</a><label class="full">'+esc(t("ghTokenLabel"))+'<input id="gh-token" type="password" autocomplete="new-password" dir="ltr" required></label><button type="submit" class="btn">'+esc(t("ghConnect"))+'</button><p class="msg err" id="ghmsg" role="status"></p></form></div>';
+}
 function adminHTML(){
   if(!unlocked)return '<div class="wrap"><form class="pw panel" id="pwform" autocomplete="off"><h2>'+esc(t("pwTitle"))+'</h2><input id="pw" type="password" inputmode="numeric" placeholder="'+esc(t("pwPh"))+'" aria-label="'+esc(t("pwPh"))+'"><button type="submit" class="btn">'+esc(t("pwBtn"))+'</button><p class="msg err" id="pwmsg" role="status"></p></form></div>';
+  if(!ghToken)return githubConnectHTML();
   var tabs=[["apps",t("tabApps")],["texts",t("tabTexts")],["design",t("tabDesign")],["set",t("tabSet")]].map(function(x){return '<button type="button" class="chip '+(atab===x[0]?"on":"")+'" data-act="tab" data-v="'+x[0]+'">'+esc(x[1])+"</button>"}).join("");
   var body=atab==="texts"?textsHTML():atab==="design"?designHTML():atab==="set"?settingsHTML():appsHTML();
-  return '<div class="wrap"><div class="head-row"><h1 style="font-size:clamp(28px,4.6vw,46px)">'+esc(t("aTitleP"))+'</h1><button type="button" class="btn ghost small" data-act="lock">'+esc(t("lock"))+"</button></div>"+(canEdit?"":'<p class="msg err">'+esc(t("needOwner"))+"</p>")+'<div class="tabs">'+tabs+"</div>"+body+'<p class="msg" id="amsg" role="status"></p></div>';
+  return '<div class="wrap"><div class="head-row"><h1 style="font-size:clamp(28px,4.6vw,46px)">'+esc(t("aTitleP"))+'</h1><button type="button" class="btn ghost small" data-act="lock">'+esc(t("lock"))+"</button></div>"+'<div class="tabs">'+tabs+"</div>"+body+'<p class="msg" id="amsg" role="status"></p></div>';
 }
 function appsHTML(){
   var rows=DATA.apps.map(function(a){
@@ -554,7 +557,7 @@ function appsHTML(){
 function formHTML(){
   var e=edit;
   var cs=cats().map(function(c){return [c.id,c[lang]||c.en||c.ar]});
-  var up=assetsNS?'<div class="full upl"><input type="file" id="up-file" hidden><input type="file" id="up-cover" accept="image/*" hidden>'+upBtn("up-file",esc(t("upFile")))+upBtn("up-cover",esc(t("upCover")))+'<span class="hint" id="upmsg"></span></div>':"";
+  var up=ghToken?'<div class="full upl"><input type="file" id="up-file" hidden><input type="file" id="up-cover" accept="image/*" hidden>'+upBtn("up-file",esc(t("upFile")))+upBtn("up-cover",esc(t("upCover")))+'<span class="hint" id="upmsg"></span></div>':"";
   return '<div class="panel"><div class="form">'
   +fld("f-tar",esc(t("fTitleAr")),e.title.ar)+fld("f-ten",esc(t("fTitleEn")),e.title.en)
   +fta("f-dar",esc(t("fDescAr")),e.desc.ar,"full")+fta("f-den",esc(t("fDescEn")),e.desc.en,"full")
@@ -586,7 +589,7 @@ function designHTML(){
   return '<div class="panel"><div class="form"><h3>'+esc(t("dLogo"))+"</h3>"
   +fld("d-logotext",esc(t("logoText")),s.logoText,"text",'dir="ltr"')+fld("d-brand",esc(t("brandWord")),s.brandWord,"text",'dir="ltr"')
   +fld("d-logo",esc(t("logoUrl")),s.logoUrl,"url",'dir="ltr"',"full")
-  +(assetsNS?'<div class="full upl"><input type="file" id="up-logo" accept="image/*" hidden>'+upBtn("up-logo",esc(t("upLogo")))+'<span class="hint" id="upmsg"></span></div>':"")
+  +(ghToken?'<div class="full upl"><input type="file" id="up-logo" accept="image/*" hidden>'+upBtn("up-logo",esc(t("upLogo")))+'<span class="hint" id="upmsg"></span></div>':"")
   +"<h3>"+esc(t("dColors"))+'</h3><div class="full cols4">'
   +fld("c-gold",esc(t("cGold")),c.gold,"color")+fld("c-teal",esc(t("cTeal")),c.teal,"color")+fld("c-ink",esc(t("cInk")),c.ink,"color")+fld("c-ink2",esc(t("cInk2")),c.ink2,"color")+fld("c-panel",esc(t("cPanel")),c.panel,"color")+fld("c-fg",esc(t("cFg")),c.fg,"color")+fld("c-mute",esc(t("cMute")),c.mute,"color")
   +"</div><h3>"+esc(t("dStage"))+'</h3><div class="full cols5">'+s.stage.map(function(x,i){return fld("st-"+i,String(i+1),x,"color")}).join("")+"</div>"
@@ -617,17 +620,50 @@ function slug(s){return (s||"app").toLowerCase().replace(/[^a-z0-9]+/g,"-").repl
 function lines(v){return v.split("\n").map(function(x){return x.trim()}).filter(Boolean)}
 function val(id){var el=$("#"+id);return el?el.value.trim():""}
 function msg(text,err){var m=$("#amsg");if(m){m.textContent=text;m.className="msg"+(err?" err":"")}}
-function buildHtml(){
-  var reset="";var hs=document.head.querySelector("style");if(hs)reset=hs.textContent;
-  var clone=document.body.cloneNode(true);
-  var r=clone.querySelector("#root");if(r)r.innerHTML="";
-  var s=clone.querySelector("#state");if(s)s.textContent=JSON.stringify(DATA).replace(/</g,"\\u003c");
-  return '<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>'+reset+"</style></head><body>"+clone.innerHTML+"</body></html>";
+function updatedHtmlFromFile(encoded){
+  var raw=atob((encoded||"").replace(/\s/g,"")),bytes=new Uint8Array(raw.length);
+  for(var i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);
+  var source=new TextDecoder("utf-8").decode(bytes),match=/<script\b[^>]*\bid="state"[^>]*>[\s\S]*?<\/script>/i.exec(source);
+  if(!match)throw new Error("state-block-not-found");
+  var open=/^<script\b[^>]*>/i.exec(match[0])[0],state=JSON.stringify(DATA).replace(/</g,"\\u003c");
+  var updated=open+state+"</scr"+"ipt>";
+  return source.slice(0,match.index)+updated+source.slice(match.index+match[0].length);
 }
+var GH_REPO_API="https://api.github.com/repos/Misaragamal96/mis-group";
+var ghQueue=Promise.resolve();
+function ghApi(method,path,body,token){
+  var opt={method:method,headers:{"Accept":"application/vnd.github+json","Authorization":"Bearer "+(token||ghToken),"X-GitHub-Api-Version":"2022-11-28"}};
+  if(body){opt.headers["Content-Type"]="application/json";opt.body=JSON.stringify(body)}
+  return fetch(GH_REPO_API+(path?"/"+path:""),opt).then(function(r){return r.text().then(function(raw){var d={};try{d=raw?JSON.parse(raw):{}}catch(e){}if(!r.ok){var er=new Error(d.message||("HTTP "+r.status));er.status=r.status;throw er}return d})});
+}
+function bytesToBase64(bytes){
+  var out="";for(var i=0;i<bytes.length;i+=32768)out+=String.fromCharCode.apply(null,bytes.subarray(i,Math.min(i+32768,bytes.length)));return btoa(out);
+}
+function verifyGitHubToken(token){
+  return ghApi("GET","",null,token).then(function(repo){if((repo.full_name||"").toLowerCase()!=="misaragamal96/mis-group")throw new Error("repo");return true});
+}
+function queuedGitHub(task){ghQueue=ghQueue.catch(function(){}).then(task);return ghQueue}
 function publish(){
-  msg(t("saving"));
-  if(!artifactNS){msg(t("needOwner"),true);return Promise.resolve()}
-  return artifactNS.publish(buildHtml()).then(function(){msg(t("saved"))}).catch(function(){msg(t("saveFail"),true)});
+  if(!ghToken){msg(t("needOwner"),true);return Promise.resolve()}
+  return queuedGitHub(function(){
+    msg(t("saving"));
+    return ghApi("GET","contents/index.html?ref=main").then(function(file){
+      return ghApi("PUT","contents/index.html",{message:"Publish site changes from admin panel",content:bytesToBase64(new TextEncoder().encode(updatedHtmlFromFile(file.content))),sha:file.sha,branch:"main"});
+    }).then(function(){msg(t("saved"))}).catch(function(err){
+      if(err.status===401||err.status===403){ghToken="";try{sessionStorage.removeItem("mis-gh-token")}catch(e){}render();var m=$("#ghmsg");if(m)m.textContent=t("ghDenied");return}
+      msg(t("saveFail"),true);
+    });
+  });
+}
+function githubUpload(file){
+  if(file.size>20*1024*1024)return Promise.reject(new Error("file-too-large"));
+  return queuedGitHub(function(){
+    return file.arrayBuffer().then(function(buffer){
+      var name=(file.name||"upload.bin").normalize("NFKD").replace(/[^A-Za-z0-9._-]+/g,"-").replace(/^-+|-+$/g,"")||"upload.bin";
+      var path="uploads/"+Date.now()+"-"+name;
+      return ghApi("PUT","contents/"+path.split("/").map(encodeURIComponent).join("/"),{message:"Upload site asset "+name,content:bytesToBase64(new Uint8Array(buffer)),branch:"main"}).then(function(result){return {url:result.content.download_url,sizeBytes:file.size}});
+    });
+  });
 }
 function afterSiteChange(){applySettings();render();return publish()}
 function saveEdit(){
@@ -691,11 +727,11 @@ function pickUpload(target){
   input.onchange=function(){
     var f=input.files&&input.files[0];if(!f)return;
     var um=$("#upmsg");if(um)um.textContent=t("uploading");
-    assetsNS.upload(f).then(function(res){
+    githubUpload(f).then(function(res){
       var out=$("#"+UPMAP[target]);if(out)out.value=res.url;
       if(target==="up-file"){var mb=res.sizeBytes/1048576;$("#f-size").value=(mb>=1?mb.toFixed(1)+" MB":Math.max(1,Math.round(res.sizeBytes/1024))+" KB")}
       if(um)um.textContent=t("upDone");
-    }).catch(function(){if(um)um.textContent=t("upFail")});
+    }).catch(function(err){if(um)um.textContent=err&&err.message==="file-too-large"?t("ghUploadLarge"):t("upFail")});
   };
   input.click();
 }
@@ -791,7 +827,7 @@ document.addEventListener("click",function(ev){
   var act=el.getAttribute("data-act");
   if(act==="lang"){lang=lang==="ar"?"en":"ar";try{localStorage.setItem("mis-lang",lang)}catch(e){}applyLang();render();return}
   if(act==="cat"){filter.cat=el.getAttribute("data-v");var chs=document.querySelectorAll("#chips .chip");for(var k=0;k<chs.length;k++)chs[k].classList.toggle("on",chs[k].getAttribute("data-v")===filter.cat);var g=$("#grid");if(g)g.innerHTML=gridInner();return}
-  if(act==="lock"){unlocked=false;edit=null;try{sessionStorage.removeItem("mis-admin")}catch(e){}location.hash="#home";render();return}
+  if(act==="lock"){unlocked=false;ghToken="";edit=null;try{sessionStorage.removeItem("mis-admin");sessionStorage.removeItem("mis-gh-token")}catch(e){}location.hash="#home";render();return}
   if(act==="tab"){atab=el.getAttribute("data-v");edit=null;confirmReset=false;try{sessionStorage.setItem("mis-tab",atab)}catch(e){}render();return}
   if(act==="new"){edit=blank();confirmDel=null;render();var e1=$("#editor");if(e1)e1.scrollIntoView({block:"start"});return}
   if(act==="edit"){var a=DATA.apps.filter(function(x){return x.id===el.getAttribute("data-id")})[0];if(a){edit=JSON.parse(JSON.stringify(a));edit.features=edit.features||{ar:[],en:[]};confirmDel=null;render();var e2=$("#editor");if(e2)e2.scrollIntoView({block:"start"})}return}
@@ -812,7 +848,12 @@ document.addEventListener("click",function(ev){
   }
 });
 document.addEventListener("submit",function(ev){
-  if(!ev.target||ev.target.id!=="pwform")return;
+  if(!ev.target)return;
+  if(ev.target.id==="ghform"){
+    ev.preventDefault();var gm=$("#ghmsg"),token=$("#gh-token").value.trim();if(gm)gm.textContent=t("ghChecking");
+    verifyGitHubToken(token).then(function(){ghToken=token;try{sessionStorage.setItem("mis-gh-token",token)}catch(e){}render()}).catch(function(){if(gm)gm.textContent=t("ghInvalid")});return;
+  }
+  if(ev.target.id!=="pwform")return;
   ev.preventDefault();
   var m=$("#pwmsg"),v=$("#pw").value;
   sha256(v).then(function(h){
@@ -855,17 +896,6 @@ if(splash){
 }
 logoTimer=setInterval(function(){replay($(".nav-l"))},Math.round(S().logoEvery*1000));
 
-/* ---------- capabilities ---------- */
-function initCaps(){
-  var c=window.claude;
-  if(!c||!c.use)return;
-  Promise.all([c.use("user").catch(function(){return null}),c.use("artifact").catch(function(){return null}),c.use("assets").catch(function(){return null})]).then(function(r){
-    userNS=r[0];artifactNS=r[1];assetsNS=r[2];
-    canEdit=!!(userNS&&userNS.canEdit&&userNS.canEdit())&&!!artifactNS;
-    if(route().name==="admin")render();
-  });
-}
-initCaps();
 })();
 </script>
 
